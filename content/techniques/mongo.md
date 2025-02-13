@@ -89,6 +89,27 @@ In case there are multiple owners, your property configuration should look as fo
 owners: Owner[];
 ```
 
+If you do not plan on always populating a reference to another collection, you should consider using `mongoose.Types.ObjectId` as the type instead:
+
+```typescript
+@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Owner' }] })
+// This is crucial to not confused the field with a populated reference
+owners: mongoose.Types.ObjectId;
+```
+
+Then you could make a repository function that specifies the correct type, if you want to populate it later:
+
+```typescript
+import { Owner } from './schemas/owner.schema';
+
+// e.g. inside a service
+async findAllPopulated() {
+  return this.catModel.find().populate<{ owner: Owner }>("owner");
+}
+```
+
+> info **Hint** If there is no foreign document to populate, the type might be null depending on your (mongoose configuration)[https://mongoosejs.com/docs/populate.html#doc-not-found], or it might throw.
+
 Finally, the **raw** schema definition can also be passed to the decorator. This is useful when, for example, a property represents a nested object which is not defined as a class. For this, use the `raw()` function from the `@nestjs/mongoose` package, as follows:
 
 ```typescript
